@@ -1,7 +1,9 @@
-import Fastify, { type FastifyInstance } from "fastify";
+import Fastify, { type FastifyInstance, type FastifyError } from "fastify";
 import cors from "@fastify/cors";
 import { sql } from "drizzle-orm";
 import { db } from "./db/index.js";
+import conflictRoutes from "./routes/conflicts.js";
+import mapRoutes from "./routes/map.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -70,6 +72,25 @@ export async function buildApp(): Promise<FastifyInstance> {
       };
     }
   });
+
+  // Global error handler
+  app.setErrorHandler(async (error: FastifyError, _request, reply) => {
+    const statusCode = error.statusCode ?? 500;
+    app.log.error(error);
+    return reply.status(statusCode).send({
+      success: false,
+      data: null,
+      meta: null,
+      error: {
+        code: statusCode >= 500 ? "INTERNAL_ERROR" : "REQUEST_ERROR",
+        message: statusCode >= 500 ? "Internal Server Error" : error.message,
+      },
+    });
+  });
+
+  // Register route plugins
+  await app.register(conflictRoutes, { prefix: "/api/v1/conflicts" });
+  await app.register(mapRoutes, { prefix: "/api/v1/map" });
 
   return app;
 }
