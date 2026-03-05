@@ -247,19 +247,28 @@ The map is the primary entry point and the most visceral representation of the p
 | Filter by timeline (show state of map at any historical date) | P1 | Linked to global timeline slider |
 | Search for a specific conflict or country | P1 | Autocomplete search bar |
 | Heatmap mode for casualty intensity | P2 | Toggle layer |
-| Satellite imagery toggle | P2 | Mapbox satellite layer |
+| Satellite imagery toggle | P2 | External satellite tile provider |
 
 #### 4.1.4 Technical Implementation
 
 ```
-Map Engine:        Mapbox GL JS (primary) — WebGL-accelerated
-Fallback:          Leaflet.js for low-powered devices
-Markers:           Custom SVG/Canvas markers rendered via MapboxGL layers
+Map Engine:        MapLibre GL JS — WebGL-accelerated (open-source fork of Mapbox GL JS)
+Map Data:          OpenStreetMap (ODbL licensed)
+Tiles:             OpenMapTiles / MapTiler public vector tiles
+Markers:           Custom SVG/Canvas markers rendered via MapLibre circle + symbol layers
 Clustering:        Supercluster library for marker clustering
 Data Format:       GeoJSON for all geographic data
 Conflict Polygons: Disputed territory overlays as GeoJSON polygon layers
-Performance:       Tile caching via Mapbox; vector tiles for scalability
+Performance:       Vector tile caching; WebGL hardware acceleration
 ```
+
+#### 4.1.4.1 Open Map Infrastructure
+
+CHAKRAVYUH_AI intentionally uses open geographic infrastructure:
+
+- **MapLibre GL JS** is an open-source fork of Mapbox GL JS (pre-proprietary-license), providing identical WebGL rendering performance with no vendor lock-in or API billing.
+- **OpenStreetMap** provides the base map data under the ODbL license, ensuring the platform's geographic foundation is community-maintained and freely accessible.
+- This choice aligns with the platform's core mission of making geopolitical knowledge accessible to everyone — the map infrastructure itself should embody the same open knowledge philosophy.
 
 #### 4.1.5 Map Data Model
 
@@ -957,8 +966,7 @@ Persistence: Language preference stored in localStorage + user profile (if logge
 | UN OCHA | API | Humanitarian data, appeals | Open | Weekly |
 | NewsAPI | API | Real-time news from 150k sources | Commercial | Hourly |
 | Reuters Connect | API | Wire news | Commercial | Real-time |
-| OpenStreetMap | Tiles | Map base layer | ODbL | On update |
-| Mapbox | SDK | Map rendering, geocoding | Commercial | CDN |
+| OpenStreetMap | Tiles | Map base layer + rendering via MapLibre | ODbL | On update |
 | EIA | API | Oil & energy prices | Open | Daily |
 | IMF | API | Macroeconomic projections | Open | Quarterly |
 
@@ -1069,7 +1077,7 @@ Method:
        │
 ┌──────▼─────────────────────────────────────────────────────────┐
 │                   EXTERNAL SERVICES                            │
-│  OpenAI API   DeepL API   Mapbox   NewsAPI   ACLED   GDELT    │
+│  OpenAI API   DeepL API   MapLibre/OSM   NewsAPI   ACLED   GDELT │
 └────────────────────────────────────────────────────────────────┘
 ```
 
@@ -1082,7 +1090,7 @@ Method:
 | TypeScript | Type safety across codebase | 5+ |
 | Tailwind CSS | Utility-first styling | 3+ |
 | Framer Motion | Animations and transitions | 11+ |
-| Mapbox GL JS | Interactive map rendering | 3+ |
+| MapLibre GL JS | Interactive map rendering (open-source, WebGL) | 4+ |
 | D3.js | Custom data visualizations (force graph, custom charts) | 7+ |
 | Recharts | Chart components | 2+ |
 | next-intl | Internationalization | 3+ |
@@ -1941,7 +1949,7 @@ Vision:
 
 | Decision | Options Considered | Decision Made | Rationale |
 |---|---|---|---|
-| Map library | Mapbox GL JS, Leaflet, Google Maps, Deck.gl | Mapbox GL JS (primary), Leaflet (fallback) | WebGL performance, custom styling, conflict polygon support |
+| Map library | MapLibre GL JS, Mapbox GL JS, Leaflet, Google Maps, Deck.gl | MapLibre GL JS (primary), Leaflet (fallback) | Open-source, WebGL performance, no vendor lock-in, no API billing, conflict polygon support |
 | Frontend framework | Next.js, Nuxt.js, SvelteKit | Next.js | Ecosystem maturity, ISR support, team familiarity |
 | Primary LLM | OpenAI GPT-4o, Anthropic Claude, Google Gemini | GPT-4o (primary), Claude (fallback) | Evaluate both in Sprint 1 |
 | Vector database | Pinecone, Weaviate, pgvector | TBD — evaluate in Sprint 2 | Need to benchmark on conflict corpus size |

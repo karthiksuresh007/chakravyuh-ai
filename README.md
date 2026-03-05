@@ -20,7 +20,7 @@ Frontend
 - Next.js
 - React
 - Tailwind
-- Mapbox
+- MapLibre GL JS
 
 Backend
 - Node.js

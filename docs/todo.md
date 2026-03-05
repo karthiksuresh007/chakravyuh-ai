@@ -4,7 +4,7 @@
 **Scope:** MVP — 5 core features only
 **Team Size:** 3–5 engineers
 **Estimated Timeline:** 10–12 weeks
-**Stack:** Next.js · TypeScript · Tailwind · Mapbox · FastAPI · PostgreSQL · Redis · Gemini
+**Stack:** Next.js · TypeScript · Tailwind · MapLibre · FastAPI · PostgreSQL · Redis · Gemini
 
 > **MVP Promise:** A user can open the app, find any active conflict on the map, click into it, explore its timeline, view impact metrics, and ask the AI to explain it — all within 3 minutes.
 
@@ -90,7 +90,6 @@
   ```
 - [ ] Set up environment variable schema with `@t3-oss/env-nextjs` or `zod`:
   ```
-  NEXT_PUBLIC_MAPBOX_TOKEN
   NEXT_PUBLIC_API_URL
   NEXT_PUBLIC_AI_SERVICE_URL
   ```
@@ -373,17 +372,15 @@ All routes live under `/api/v1/` in `apps/api`.
 
 ---
 
-### 2.1 Mapbox Setup
+### 2.1 MapLibre Setup
 
-- [ ] Install `mapbox-gl` and `@types/mapbox-gl`
+- [ ] Install `maplibre-gl`
 - [ ] Create `/components/map/ConflictMap.tsx` — client-side only component (`"use client"`)
 - [ ] Add `dynamic(() => import('@/components/map/ConflictMap'), { ssr: false })` wrapper in parent
-- [ ] Initialize Mapbox map instance with:
-  - Style: `mapbox://styles/mapbox/dark-v11` (dark base — suits geopolitics context)
+- [ ] Initialize MapLibre map instance with:
+  - Style: `https://demotiles.maplibre.org/style.json` (OpenStreetMap vector tiles)
   - Initial center: `[20, 20]` (shows Europe, Africa, Middle East)
   - Initial zoom: `2`
-  - `projection: 'mercator'`
-- [ ] Restrict map token via Mapbox dashboard (URL restriction to app domain)
 
 ---
 
@@ -951,7 +948,7 @@ All routes live under `/api/v1/` in `apps/api`.
 - [ ] Run Lighthouse audit on home page and one conflict page — target LCP < 2.5s
 - [ ] Implement `next/image` for all images (actor photos, media in timeline events)
 - [ ] Add `loading="lazy"` to below-the-fold images
-- [ ] Lazy-load Mapbox GL JS with Next.js `dynamic()` (saves ~250KB on non-map pages)
+- [ ] Lazy-load MapLibre GL JS with Next.js `dynamic()` (saves ~250KB on non-map pages)
 - [ ] Lazy-load Recharts with `dynamic()` (saves ~80KB on non-impact pages)
 - [ ] Verify ISR revalidation is working (conflict pages update within 5 minutes of API change)
 - [ ] Add `stale-while-revalidate` headers to API responses
@@ -976,7 +973,7 @@ All routes live under `/api/v1/` in `apps/api`.
 - [ ] Safari (latest) — desktop and iOS
 - [ ] Firefox (latest) — desktop
 - [ ] Edge (latest) — desktop
-- [ ] Fix any Mapbox GL JS rendering issues on Safari (common WebGL quirks)
+- [ ] Fix any MapLibre GL JS rendering issues on Safari (common WebGL quirks)
 
 ---
 
@@ -1049,7 +1046,6 @@ All routes live under `/api/v1/` in `apps/api`.
 - [ ] Connect GitHub repo to Vercel project
 - [ ] Configure production domain: `chakravyuh.ai` (or placeholder domain)
 - [ ] Set all production environment variables in Vercel dashboard:
-  - `NEXT_PUBLIC_MAPBOX_TOKEN`
   - `NEXT_PUBLIC_API_URL`
   - `NEXT_PUBLIC_AI_SERVICE_URL`
 - [ ] Enable Vercel Analytics
@@ -1101,7 +1097,7 @@ All routes live under `/api/v1/` in `apps/api`.
 - [ ] Verify `GEMINI_API_KEY` is not exposed in any client-side code or browser network requests
 - [ ] Run `npm audit` and `pip audit` — fix any critical/high CVEs
 - [ ] Enable Vercel's security headers (CSP, X-Frame-Options, HSTS) in `next.config.ts`
-- [ ] Verify Mapbox token is URL-restricted in Mapbox dashboard
+- [ ] Verify API keys are not exposed in client-side code or browser network requests
 
 ---
 
@@ -1178,7 +1174,7 @@ Run these manually after every production deployment:
 | Decision | Choice | Reason |
 |---|---|---|
 | Frontend framework | Next.js 14 (App Router) | ISR, SSG, streaming, ecosystem |
-| Map library | Mapbox GL JS | WebGL performance, custom styling |
+| Map library | MapLibre GL JS | WebGL performance, open-source, no API billing |
 | ORM | Drizzle ORM | Type-safe, lightweight, fast migrations |
 | Charts | Recharts | React-native, good defaults, small bundle |
 | State management | Zustand | Simple, no boilerplate |

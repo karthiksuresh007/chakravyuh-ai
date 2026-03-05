@@ -3,7 +3,9 @@
   "private": true,
   "scripts": {
     "dev:api": "pnpm --filter @chakravyuh/api dev",
+    "dev:web": "pnpm --filter @chakravyuh/web dev",
     "build:api": "pnpm --filter @chakravyuh/api build",
+    "build:web": "pnpm --filter @chakravyuh/web build",
     "lint": "pnpm -r lint"
   },
   "engines": {
