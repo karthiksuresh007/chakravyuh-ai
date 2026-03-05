@@ -1,7 +1,9 @@
 import Fastify, { type FastifyInstance, type FastifyError } from "fastify";
 import cors from "@fastify/cors";
+import rateLimit from "@fastify/rate-limit";
 import { sql } from "drizzle-orm";
 import { db } from "./db/index.js";
+import { getCacheStatus } from "./lib/cache.js";
 import conflictRoutes from "./routes/conflicts.js";
 import mapRoutes from "./routes/map.js";
 
@@ -22,6 +24,21 @@ export async function buildApp(): Promise<FastifyInstance> {
       ? ["https://chakravyuh.ai"]
       : true,
     credentials: true,
+  });
+
+  // Rate limiting — 60 requests per minute per IP
+  await app.register(rateLimit, {
+    max: 60,
+    timeWindow: "1 minute",
+    errorResponseBuilder: (_request, context) => ({
+      success: false,
+      data: null,
+      meta: null,
+      error: {
+        code: "RATE_LIMIT_EXCEEDED",
+        message: `Rate limit exceeded. Retry after ${Math.ceil(context.ttl / 1000)}s`,
+      },
+    }),
   });
 
   // Health check endpoint
@@ -52,6 +69,7 @@ export async function buildApp(): Promise<FastifyInstance> {
           service: "chakravyuh-api",
           database: "connected",
           dbLatencyMs: latencyMs,
+          cache: getCacheStatus().connected ? "connected" : "disconnected",
           timestamp: new Date().toISOString(),
         },
         meta: null,

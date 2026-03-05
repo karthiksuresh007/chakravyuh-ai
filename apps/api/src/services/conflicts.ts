@@ -1,5 +1,7 @@
 import { eq, and, asc, desc, sql, type SQL } from "drizzle-orm";
+import { createHash } from "node:crypto";
 import { db } from "../db/index.js";
+import { cacheGet, cacheSet } from "../lib/cache.js";
 import {
   conflicts,
   timelineEvents,
@@ -8,6 +10,18 @@ import {
   economicImpact,
   humanitarianImpact,
 } from "../db/schema.js";
+
+function hashParams(params: object): string {
+  return createHash("sha256").update(JSON.stringify(params)).digest("hex").slice(0, 12);
+}
+
+async function withCache<T>(key: string, ttlSeconds: number, fn: () => Promise<T>): Promise<T> {
+  const cached = await cacheGet<T>(key);
+  if (cached) return cached;
+  const result = await fn();
+  await cacheSet(key, result, ttlSeconds);
+  return result;
+}
 
 // ── List conflicts (paginated, filterable) ──────────────────────
 
@@ -20,58 +34,64 @@ interface ListConflictsParams {
 }
 
 export async function listConflicts(params: ListConflictsParams) {
-  const conditions: SQL[] = [];
+  const cacheKey = `conflicts:list:${hashParams(params)}`;
+  return withCache(cacheKey, 300, async () => {
+    const conditions: SQL[] = [];
 
-  if (params.region) conditions.push(eq(conflicts.region, params.region));
-  if (params.status) conditions.push(eq(conflicts.status, params.status));
-  if (params.intensity) conditions.push(eq(conflicts.intensity, params.intensity));
+    if (params.region) conditions.push(eq(conflicts.region, params.region));
+    if (params.status) conditions.push(eq(conflicts.status, params.status));
+    if (params.intensity) conditions.push(eq(conflicts.intensity, params.intensity));
 
-  const where = conditions.length > 0 ? and(...conditions) : undefined;
+    const where = conditions.length > 0 ? and(...conditions) : undefined;
 
-  const [data, countResult] = await Promise.all([
-    db
-      .select({
-        id: conflicts.id,
-        slug: conflicts.slug,
-        displayName: conflicts.displayName,
-        status: conflicts.status,
-        intensity: conflicts.intensity,
-        region: conflicts.region,
-        lat: conflicts.lat,
-        lng: conflicts.lng,
-        riskScore: conflicts.riskScore,
-        startDate: conflicts.startDate,
-      })
-      .from(conflicts)
-      .where(where)
-      .orderBy(desc(conflicts.riskScore))
-      .limit(params.limit)
-      .offset(params.offset),
+    const [data, countResult] = await Promise.all([
+      db
+        .select({
+          id: conflicts.id,
+          slug: conflicts.slug,
+          displayName: conflicts.displayName,
+          status: conflicts.status,
+          intensity: conflicts.intensity,
+          region: conflicts.region,
+          lat: conflicts.lat,
+          lng: conflicts.lng,
+          riskScore: conflicts.riskScore,
+          startDate: conflicts.startDate,
+        })
+        .from(conflicts)
+        .where(where)
+        .orderBy(desc(conflicts.riskScore))
+        .limit(params.limit)
+        .offset(params.offset),
 
-    db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(conflicts)
-      .where(where),
-  ]);
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(conflicts)
+        .where(where),
+    ]);
 
-  return {
-    items: data,
-    total: countResult[0].count,
-    limit: params.limit,
-    offset: params.offset,
-  };
+    return {
+      items: data,
+      total: countResult[0].count,
+      limit: params.limit,
+      offset: params.offset,
+    };
+  });
 }
 
 // ── Get single conflict by slug ─────────────────────────────────
 
 export async function getConflictBySlug(slug: string) {
-  const result = await db
-    .select()
-    .from(conflicts)
-    .where(eq(conflicts.slug, slug))
-    .limit(1);
+  const cacheKey = `conflict:${slug}`;
+  return withCache(cacheKey, 300, async () => {
+    const rows = await db
+      .select()
+      .from(conflicts)
+      .where(eq(conflicts.slug, slug))
+      .limit(1);
 
-  return result[0] ?? null;
+    return rows[0] ?? null;
+  });
 }
 
 // ── Get timeline events for a conflict ──────────────────────────
@@ -84,64 +104,73 @@ interface TimelineParams {
 }
 
 export async function getConflictTimeline(conflictId: string, params: TimelineParams) {
-  const conditions: SQL[] = [eq(timelineEvents.conflictId, conflictId)];
+  const cacheKey = `conflict:${conflictId}:timeline:${hashParams(params)}`;
+  return withCache(cacheKey, 600, async () => {
+    const conditions: SQL[] = [eq(timelineEvents.conflictId, conflictId)];
 
-  if (params.category) conditions.push(eq(timelineEvents.category, params.category));
-  if (params.significance) conditions.push(eq(timelineEvents.significance, params.significance));
-  if (params.startDate) conditions.push(sql`${timelineEvents.eventDate} >= ${params.startDate}`);
-  if (params.endDate) conditions.push(sql`${timelineEvents.eventDate} <= ${params.endDate}`);
+    if (params.category) conditions.push(eq(timelineEvents.category, params.category));
+    if (params.significance) conditions.push(eq(timelineEvents.significance, params.significance));
+    if (params.startDate) conditions.push(sql`${timelineEvents.eventDate} >= ${params.startDate}`);
+    if (params.endDate) conditions.push(sql`${timelineEvents.eventDate} <= ${params.endDate}`);
 
-  return db
-    .select()
-    .from(timelineEvents)
-    .where(and(...conditions))
-    .orderBy(asc(timelineEvents.eventDate));
+    return db
+      .select()
+      .from(timelineEvents)
+      .where(and(...conditions))
+      .orderBy(asc(timelineEvents.eventDate));
+  });
 }
 
 // ── Get actors for a conflict ───────────────────────────────────
 
 export async function getConflictActors(conflictId: string) {
-  return db
-    .select({
-      id: actors.id,
-      name: actors.name,
-      type: actors.type,
-      countryCode: actors.countryCode,
-      description: actors.description,
-      logoUrl: actors.logoUrl,
-      role: conflictActors.role,
-      statedObjectives: conflictActors.statedObjectives,
-      involvementStart: conflictActors.involvementStart,
-      involvementEnd: conflictActors.involvementEnd,
-    })
-    .from(conflictActors)
-    .innerJoin(actors, eq(conflictActors.actorId, actors.id))
-    .where(eq(conflictActors.conflictId, conflictId))
-    .orderBy(asc(conflictActors.role));
+  const cacheKey = `conflict:${conflictId}:actors`;
+  return withCache(cacheKey, 300, async () => {
+    return db
+      .select({
+        id: actors.id,
+        name: actors.name,
+        type: actors.type,
+        countryCode: actors.countryCode,
+        description: actors.description,
+        logoUrl: actors.logoUrl,
+        role: conflictActors.role,
+        statedObjectives: conflictActors.statedObjectives,
+        involvementStart: conflictActors.involvementStart,
+        involvementEnd: conflictActors.involvementEnd,
+      })
+      .from(conflictActors)
+      .innerJoin(actors, eq(conflictActors.actorId, actors.id))
+      .where(eq(conflictActors.conflictId, conflictId))
+      .orderBy(asc(conflictActors.role));
+  });
 }
 
 // ── Get impact data for a conflict ──────────────────────────────
 
 export async function getConflictImpact(conflictId: string) {
-  const [humanitarian, economic] = await Promise.all([
-    db
-      .select()
-      .from(humanitarianImpact)
-      .where(eq(humanitarianImpact.conflictId, conflictId))
-      .orderBy(desc(humanitarianImpact.asOfDate))
-      .limit(1),
+  const cacheKey = `conflict:${conflictId}:impact`;
+  return withCache(cacheKey, 300, async () => {
+    const [humanitarian, economic] = await Promise.all([
+      db
+        .select()
+        .from(humanitarianImpact)
+        .where(eq(humanitarianImpact.conflictId, conflictId))
+        .orderBy(desc(humanitarianImpact.asOfDate))
+        .limit(1),
 
-    db
-      .select()
-      .from(economicImpact)
-      .where(eq(economicImpact.conflictId, conflictId))
-      .orderBy(asc(economicImpact.metricName)),
-  ]);
+      db
+        .select()
+        .from(economicImpact)
+        .where(eq(economicImpact.conflictId, conflictId))
+        .orderBy(asc(economicImpact.metricName)),
+    ]);
 
-  return {
-    humanitarian: humanitarian[0] ?? null,
-    economic,
-  };
+    return {
+      humanitarian: humanitarian[0] ?? null,
+      economic,
+    };
+  });
 }
 
 // ── Map markers (GeoJSON) ───────────────────────────────────────
@@ -153,60 +182,63 @@ interface MapMarkersParams {
 }
 
 export async function getMapMarkers(params: MapMarkersParams) {
-  const conditions: SQL[] = [];
+  const cacheKey = `map:markers:${hashParams(params)}`;
+  return withCache(cacheKey, 300, async () => {
+    const conditions: SQL[] = [];
 
-  if (params.region) conditions.push(eq(conflicts.region, params.region));
-  if (params.status) conditions.push(eq(conflicts.status, params.status));
-  if (params.intensity) conditions.push(eq(conflicts.intensity, params.intensity));
+    if (params.region) conditions.push(eq(conflicts.region, params.region));
+    if (params.status) conditions.push(eq(conflicts.status, params.status));
+    if (params.intensity) conditions.push(eq(conflicts.intensity, params.intensity));
 
-  const where = conditions.length > 0 ? and(...conditions) : undefined;
+    const where = conditions.length > 0 ? and(...conditions) : undefined;
 
-  const data = await db
-    .select({
-      id: conflicts.id,
-      slug: conflicts.slug,
-      displayName: conflicts.displayName,
-      status: conflicts.status,
-      intensity: conflicts.intensity,
-      region: conflicts.region,
-      lat: conflicts.lat,
-      lng: conflicts.lng,
-      riskScore: conflicts.riskScore,
-    })
-    .from(conflicts)
-    .where(where);
+    const data = await db
+      .select({
+        id: conflicts.id,
+        slug: conflicts.slug,
+        displayName: conflicts.displayName,
+        status: conflicts.status,
+        intensity: conflicts.intensity,
+        region: conflicts.region,
+        lat: conflicts.lat,
+        lng: conflicts.lng,
+        riskScore: conflicts.riskScore,
+      })
+      .from(conflicts)
+      .where(where);
 
-  // Join with humanitarian data for casualty estimates
-  const withCasualties = await Promise.all(
-    data.map(async (conflict) => {
-      const h = await db
-        .select({ totalDeaths: humanitarianImpact.totalDeaths })
-        .from(humanitarianImpact)
-        .where(eq(humanitarianImpact.conflictId, conflict.id))
-        .limit(1);
+    // Join with humanitarian data for casualty estimates
+    const withCasualties = await Promise.all(
+      data.map(async (conflict) => {
+        const h = await db
+          .select({ totalDeaths: humanitarianImpact.totalDeaths })
+          .from(humanitarianImpact)
+          .where(eq(humanitarianImpact.conflictId, conflict.id))
+          .limit(1);
 
-      return {
-        type: "Feature" as const,
-        geometry: {
-          type: "Point" as const,
-          coordinates: [parseFloat(conflict.lng), parseFloat(conflict.lat)],
-        },
-        properties: {
-          conflict_id: conflict.id,
-          slug: conflict.slug,
-          display_name: conflict.displayName,
-          status: conflict.status,
-          intensity: conflict.intensity,
-          risk_score: conflict.riskScore ? parseFloat(conflict.riskScore) : null,
-          casualty_estimate: h[0]?.totalDeaths ?? null,
-          region: conflict.region,
-        },
-      };
-    })
-  );
+        return {
+          type: "Feature" as const,
+          geometry: {
+            type: "Point" as const,
+            coordinates: [parseFloat(conflict.lng), parseFloat(conflict.lat)],
+          },
+          properties: {
+            conflict_id: conflict.id,
+            slug: conflict.slug,
+            display_name: conflict.displayName,
+            status: conflict.status,
+            intensity: conflict.intensity,
+            risk_score: conflict.riskScore ? parseFloat(conflict.riskScore) : null,
+            casualty_estimate: h[0]?.totalDeaths ?? null,
+            region: conflict.region,
+          },
+        };
+      })
+    );
 
-  return {
-    type: "FeatureCollection" as const,
-    features: withCasualties,
-  };
+    return {
+      type: "FeatureCollection" as const,
+      features: withCasualties,
+    };
+  });
 }
