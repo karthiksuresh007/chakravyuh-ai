@@ -447,21 +447,21 @@ All routes live under `/api/v1/` in `apps/api`.
 
 ### 2.6 Filter Controls
 
-- [ ] Create `MapFilters` component (overlay panel, top-left or bottom-left of map)
-- [ ] Implement **Intensity filter**: multi-select checkboxes (High / Medium / Low / Tension / Historical)
-- [ ] Implement **Region filter**: dropdown select (All / Africa / Middle East / Europe / Asia / Americas)
-- [ ] Store filter state in component state (or Zustand)
-- [ ] On filter change: re-fetch `GET /api/v1/map/markers` with new query params
-- [ ] Update GeoJSON source data: `map.getSource('conflicts').setData(newGeoJSON)`
+- [x] Create `MapFilters` component (overlay panel, top-left or bottom-left of map)
+- [x] Implement **Intensity filter**: multi-select checkboxes (High / Medium / Low / Tension / Historical)
+- [x] Implement **Region filter**: dropdown select (All / Africa / Middle East / Europe / Asia / Americas)
+- [x] Store filter state in component state (or Zustand)
+- [x] On filter change: re-fetch `GET /api/v1/map/markers` with new query params
+- [x] Update GeoJSON source data: `map.getSource('conflicts').setData(newGeoJSON)`
 
 ---
 
 ### 2.7 Map Responsiveness
 
-- [ ] Ensure map fills full viewport on desktop (`width: 100vw, height: 100vh`)
-- [ ] On mobile: map fills full screen, filter panel collapses to bottom drawer
-- [ ] Handle window resize: call `map.resize()` on container resize event
-- [ ] Test on Chrome (desktop), Safari (iOS), Chrome (Android)
+- [x] Ensure map fills full viewport on desktop (`width: 100vw, height: 100vh`)
+- [x] On mobile: map fills full screen, filter panel collapses to bottom drawer
+- [x] Handle window resize: call `map.resize()` on container resize event
+- [x] Test on Chrome (desktop), Safari (iOS), Chrome (Android)
 
 ---
 

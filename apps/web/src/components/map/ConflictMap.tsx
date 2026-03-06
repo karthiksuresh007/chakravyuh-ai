@@ -1,11 +1,13 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { fetchMapMarkers } from "@/lib/api/map";
+import type { MapFiltersState } from "@/types";
 import MapTooltip, { type TooltipState } from "./MapTooltip";
+import MapFilters from "./MapFilters";
 
 const SOURCE_ID = "conflicts";
 const CLUSTER_LAYER_ID = "conflict-clusters";
@@ -20,6 +22,28 @@ export default function ConflictMap() {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+
+  const applyFilters = useCallback(async (filters: MapFiltersState) => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    try {
+      const regionParam = filters.region === "All" ? undefined : filters.region;
+      const geojson = await fetchMapMarkers({ region: regionParam });
+
+      // Client-side intensity filter (API only accepts a single value)
+      if (filters.intensity.length > 0) {
+        geojson.features = geojson.features.filter((f) =>
+          filters.intensity.includes(f.properties.intensity)
+        );
+      }
+
+      const source = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
+      if (source) source.setData(geojson);
+    } catch (err) {
+      console.error("Failed to apply filters:", err);
+    }
+  }, []);
 
   useEffect(() => {
     if (mapRef.current || !mapContainer.current) return;
@@ -219,7 +243,12 @@ export default function ConflictMap() {
 
     mapRef.current = map;
 
+    // Resize map when container dimensions change
+    const ro = new ResizeObserver(() => map.resize());
+    ro.observe(mapContainer.current);
+
     return () => {
+      ro.disconnect();
       map.remove();
       mapRef.current = null;
     };
@@ -228,6 +257,7 @@ export default function ConflictMap() {
   return (
     <div className="absolute inset-0">
       <div ref={mapContainer} className="w-full h-full" />
+      <MapFilters onChange={applyFilters} />
       {!loaded && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-950">
           <div className="text-gray-400 text-sm animate-pulse">
