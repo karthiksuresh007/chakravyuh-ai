@@ -408,40 +408,40 @@ All routes live under `/api/v1/` in `apps/api`.
 
 ### 2.3 Marker Clustering
 
-- [ ] Enable clustering on the GeoJSON source:
+- [x] Enable clustering on the GeoJSON source:
   ```js
   cluster: true,
   clusterMaxZoom: 4,
   clusterRadius: 60
   ```
-- [ ] Add cluster circle layer (larger circle, displays count)
-- [ ] Add cluster count text layer (`symbol` layer with `text-field: ['get', 'point_count']`)
-- [ ] Add unclustered point layer for individual markers at zoom > 4
-- [ ] Handle cluster click: zoom map to cluster bounds on click
+- [x] Add cluster circle layer (larger circle, displays count)
+- [x] Add cluster count text layer (`symbol` layer with `text-field: ['get', 'point_count']`)
+- [x] Add unclustered point layer for individual markers at zoom > 4
+- [x] Handle cluster click: zoom map to cluster bounds on click
 
 ---
 
 ### 2.4 Hover Tooltips
 
-- [ ] Create `MapTooltip` component (styled `div` positioned absolutely)
-- [ ] Listen for `mousemove` event on unclustered point layer
-- [ ] On hover: show tooltip with:
+- [x] Create `MapTooltip` component (styled `div` positioned absolutely)
+- [x] Listen for `mousemove` event on unclustered point layer
+- [x] On hover: show tooltip with:
   - Conflict name
   - Status badge (Active / Tension / Historical)
   - Intensity badge
   - Approximate casualties (formatted: "~500K deaths")
   - Risk score
-- [ ] On mouse leave: hide tooltip
-- [ ] Change cursor to `pointer` on hover
+- [x] On mouse leave: hide tooltip
+- [x] Change cursor to `pointer` on hover
 
 ---
 
 ### 2.5 Click → Conflict Detail Navigation
 
-- [ ] Listen for `click` event on unclustered point layer
-- [ ] Extract `slug` from clicked feature properties
-- [ ] Navigate to `/conflict/[slug]` using `router.push()`
-- [ ] Prevent click event bubbling to map (avoid accidental zoom)
+- [x] Listen for `click` event on unclustered point layer
+- [x] Extract `slug` from clicked feature properties
+- [x] Navigate to `/conflict/[slug]` using `router.push()`
+- [x] Prevent click event bubbling to map (avoid accidental zoom)
 
 ---
 
