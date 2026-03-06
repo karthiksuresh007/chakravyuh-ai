@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import type {
   Conflict,
@@ -10,10 +11,39 @@ import type {
 } from "@/types";
 import OverviewTab from "@/components/conflict/OverviewTab";
 import KeyPlayersTab from "@/components/conflict/KeyPlayersTab";
-import ImpactTab from "@/components/conflict/ImpactTab";
-import AIExplainerPanel from "@/components/conflict/AIExplainerPanel";
-import TimelineSlider from "@/components/timeline/TimelineSlider";
-import TimelineFilters, { type TimelineCategory } from "@/components/timeline/TimelineFilters";
+import type { TimelineCategory } from "@/components/timeline/TimelineFilters";
+
+// Lazy-load heavy components (Recharts, AI streaming, Timeline)
+const ImpactTab = dynamic(() => import("@/components/conflict/ImpactTab"), {
+  loading: () => (
+    <div className="flex items-center justify-center py-16">
+      <div className="w-8 h-8 border-2 border-gray-700 border-t-amber-500 rounded-full animate-spin" />
+    </div>
+  ),
+});
+const AIExplainerPanel = dynamic(
+  () => import("@/components/conflict/AIExplainerPanel"),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center py-16">
+        <div className="w-8 h-8 border-2 border-gray-700 border-t-amber-500 rounded-full animate-spin" />
+      </div>
+    ),
+  }
+);
+const TimelineSlider = dynamic(
+  () => import("@/components/timeline/TimelineSlider"),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center py-16">
+        <div className="w-8 h-8 border-2 border-gray-700 border-t-amber-500 rounded-full animate-spin" />
+      </div>
+    ),
+  }
+);
+const TimelineFilters = dynamic(
+  () => import("@/components/timeline/TimelineFilters"),
+);
 
 const TABS = ["overview", "timeline", "players", "impact", "ai"] as const;
 type TabId = (typeof TABS)[number];
@@ -86,6 +116,29 @@ export default function ConflictTabs({
     window.history.replaceState(null, "", `#${tab}`);
   }
 
+  // Keyboard navigation for tabs (arrow keys + Home/End)
+  function handleTabKeyDown(e: React.KeyboardEvent, currentIndex: number) {
+    let nextIndex = currentIndex;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      e.preventDefault();
+      nextIndex = (currentIndex + 1) % TABS.length;
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      e.preventDefault();
+      nextIndex = (currentIndex - 1 + TABS.length) % TABS.length;
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      nextIndex = 0;
+    } else if (e.key === "End") {
+      e.preventDefault();
+      nextIndex = TABS.length - 1;
+    } else {
+      return;
+    }
+    const nextTab = TABS[nextIndex];
+    handleTabChange(nextTab);
+    tabRefs.current[nextTab]?.focus();
+  }
+
   return (
     <div className="px-4 sm:px-6 lg:px-8 pb-16 max-w-5xl mx-auto">
       {/* Tab bar */}
@@ -93,14 +146,19 @@ export default function ConflictTabs({
         <nav
           className="flex gap-0 overflow-x-auto scrollbar-hide -mb-px"
           role="tablist"
+          aria-label="Conflict detail tabs"
         >
-          {TABS.map((tab) => (
+          {TABS.map((tab, i) => (
             <button
               key={tab}
               ref={(el) => { tabRefs.current[tab] = el; }}
               role="tab"
+              id={`tab-${tab}`}
               aria-selected={activeTab === tab}
+              aria-controls={`tabpanel-${tab}`}
+              tabIndex={activeTab === tab ? 0 : -1}
               onClick={() => handleTabChange(tab)}
+              onKeyDown={(e) => handleTabKeyDown(e, i)}
               className={`relative shrink-0 px-4 py-3 text-sm font-medium transition-colors ${
                 activeTab === tab
                   ? "text-white"
@@ -124,6 +182,9 @@ export default function ConflictTabs({
       <AnimatePresence mode="wait">
         <motion.div
           key={activeTab}
+          role="tabpanel"
+          id={`tabpanel-${activeTab}`}
+          aria-labelledby={`tab-${activeTab}`}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}

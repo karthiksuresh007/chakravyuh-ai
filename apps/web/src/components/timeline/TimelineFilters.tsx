@@ -34,7 +34,7 @@ export default function TimelineFilters({
   );
 
   return (
-    <div className="flex items-center gap-2 flex-wrap">
+    <div className="flex items-center gap-2 flex-wrap" role="group" aria-label="Timeline category filters">
       {visible.map((filter) => {
         const isActive = activeCategory === filter.id;
         const color = filter.id === "all" ? "#ffffff" : (CATEGORY_COLORS[filter.id] ?? "#6b7280");
@@ -43,6 +43,7 @@ export default function TimelineFilters({
           <button
             key={filter.id}
             onClick={() => onSelect(filter.id)}
+            aria-pressed={isActive}
             className={`relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
               isActive
                 ? "text-white"

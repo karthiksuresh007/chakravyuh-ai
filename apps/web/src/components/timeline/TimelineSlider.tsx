@@ -164,6 +164,7 @@ export default function TimelineSlider({
         aria-valuemin={0}
         aria-valuemax={events.length - 1}
         aria-valuenow={activeIndex}
+        aria-valuetext={`${events[activeIndex].title}, ${new Date(events[activeIndex].eventDate).toLocaleDateString()}`}
         tabIndex={0}
       >
         {/* Date labels (start / end) */}
@@ -317,6 +318,7 @@ export default function TimelineSlider({
         <button
           onClick={() => { setIsPlaying(false); if (activeIndex > 0) onSelect(activeIndex - 1); }}
           disabled={activeIndex === 0}
+          aria-label="Previous event"
           className="flex items-center gap-1 px-2 py-1 rounded hover:text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -349,6 +351,7 @@ export default function TimelineSlider({
         <button
           onClick={() => { setIsPlaying(false); if (activeIndex < events.length - 1) onSelect(activeIndex + 1); }}
           disabled={activeIndex === events.length - 1}
+          aria-label="Next event"
           className="flex items-center gap-1 px-2 py-1 rounded hover:text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           <span className="hidden sm:inline">Next</span>

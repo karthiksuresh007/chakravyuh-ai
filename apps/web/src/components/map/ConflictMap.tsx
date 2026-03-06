@@ -252,11 +252,12 @@ export default function ConflictMap() {
       map.remove();
       mapRef.current = null;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <div className="absolute inset-0">
-      <div ref={mapContainer} className="w-full h-full" />
+    <div className="absolute inset-0" role="application" aria-label="Interactive conflict map">
+      <div ref={mapContainer} className="w-full h-full" aria-hidden="true" />
       <MapFilters onChange={applyFilters} />
       {!loaded && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-950">

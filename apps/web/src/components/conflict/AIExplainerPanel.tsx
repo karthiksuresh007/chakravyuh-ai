@@ -1,8 +1,12 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import ReactMarkdown from "react-markdown";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
+
+const ReactMarkdown = dynamic(() => import("react-markdown"), {
+  loading: () => <span className="text-gray-500 text-sm">Loading…</span>,
+});
 
 const AI_SERVICE_URL =
   process.env.NEXT_PUBLIC_AI_SERVICE_URL ?? "http://localhost:8000";
@@ -240,12 +244,13 @@ export default function AIExplainerPanel({
         <label className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2 block">
           Explanation Level
         </label>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Explanation complexity level">
           {LEVELS.map((l) => (
             <button
               key={l.id}
               onClick={() => { setLevel(l.id); setHasExplained(false); setMessages([]); setSessionId(null); }}
               disabled={streaming}
+              aria-pressed={level === l.id}
               className={`group relative px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                 level === l.id
                   ? "bg-purple-500/20 text-purple-300 ring-1 ring-purple-500/40"
@@ -304,6 +309,7 @@ export default function AIExplainerPanel({
           </span>
           <button
             onClick={handleStop}
+            aria-label="Stop generating"
             className="ml-auto text-xs text-gray-500 hover:text-gray-300 transition-colors"
           >
             Stop
@@ -315,6 +321,9 @@ export default function AIExplainerPanel({
       {messages.length > 0 && (
         <div
           ref={scrollRef}
+          role="log"
+          aria-live="polite"
+          aria-label="AI conversation"
           className="max-h-[60vh] overflow-y-auto space-y-4 scrollbar-thin scrollbar-thumb-gray-700"
         >
           {messages.map((msg, i) => (
@@ -360,6 +369,7 @@ export default function AIExplainerPanel({
           <button
             onClick={handleFollowUp}
             disabled={!followUp.trim()}
+            aria-label="Send follow-up question"
             className="px-4 py-2.5 rounded-xl bg-purple-600 text-white text-sm font-medium hover:bg-purple-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">

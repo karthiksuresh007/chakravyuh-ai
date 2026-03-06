@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import type { HumanitarianImpact } from "@/types";
 import ImpactMetricCard from "@/components/impact/ImpactMetricCard";
 import ChartCard from "@/components/impact/ChartCard";

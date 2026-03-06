@@ -1,13 +1,7 @@
 "use client";
 
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { useState, useEffect } from "react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import type { EconomicImpact } from "@/types";
 import ChartCard from "@/components/impact/ChartCard";
 
@@ -36,8 +30,18 @@ interface EconomicImpactPanelProps {
 export default function EconomicImpactPanel({
   metrics,
 }: EconomicImpactPanelProps) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
   const barData = metrics.map((m) => ({
-    name: truncate(m.metricName),
+    name: truncate(m.metricName, isMobile ? 14 : 22),
     fullName: m.metricName,
     value: parseFloat(m.metricValue),
     unit: m.metricUnit,
@@ -70,8 +74,8 @@ export default function EconomicImpactPanel({
               <YAxis
                 type="category"
                 dataKey="name"
-                width={150}
-                tick={{ fill: "#9ca3af", fontSize: 11 }}
+                width={isMobile ? 90 : 150}
+                tick={{ fill: "#9ca3af", fontSize: isMobile ? 10 : 11 }}
                 axisLine={false}
                 tickLine={false}
               />

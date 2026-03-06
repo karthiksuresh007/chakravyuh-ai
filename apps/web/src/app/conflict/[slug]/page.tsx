@@ -31,13 +31,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   try {
     const conflict = await getConflict(slug);
     return {
-      title: `${conflict.displayName} — Chakravyuh AI`,
+      title: conflict.displayName,
       description:
         conflict.overviewText?.slice(0, 160) ??
         `Detailed intelligence on the ${conflict.displayName} conflict.`,
+      openGraph: {
+        title: `${conflict.displayName} — Chakravyuh AI`,
+        description:
+          conflict.overviewText?.slice(0, 160) ??
+          `Detailed intelligence on the ${conflict.displayName} conflict.`,
+        type: "article",
+      },
     };
   } catch {
-    return { title: "Conflict Not Found — Chakravyuh AI" };
+    return { title: "Conflict Not Found" };
   }
 }
 

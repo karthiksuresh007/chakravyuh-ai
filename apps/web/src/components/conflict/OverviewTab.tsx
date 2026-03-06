@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import Markdown from "react-markdown";
+import dynamic from "next/dynamic";
 import type { Conflict } from "@/types";
+
+const Markdown = dynamic(() => import("react-markdown"), {
+  loading: () => <div className="h-20 animate-pulse bg-gray-800/50 rounded-lg" />,
+});
 
 interface OverviewTabProps {
   conflict: Conflict;
@@ -32,6 +36,7 @@ export default function OverviewTab({ conflict }: OverviewTabProps) {
         <section>
           <button
             onClick={() => setBgExpanded((prev) => !prev)}
+            aria-expanded={bgExpanded}
             className="flex items-center gap-2 text-xl font-semibold text-gray-200 hover:text-white transition-colors group w-full text-left"
           >
             <svg

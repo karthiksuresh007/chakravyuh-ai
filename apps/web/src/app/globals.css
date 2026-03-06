@@ -11,3 +11,24 @@ body {
   color: var(--foreground);
   background: var(--background);
 }
+
+/* ── Skip-to-content link ───────────────────────────────── */
+.skip-link {
+  @apply absolute -top-10 left-4 z-[9999] px-4 py-2 text-sm font-medium
+         bg-white text-gray-950 rounded-b-lg shadow-lg
+         focus:top-0 transition-[top] duration-200;
+}
+
+/* ── Scrollbar-hide utility ─────────────────────────────── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Focus-visible ring for all interactive elements ───── */
+*:focus-visible {
+  @apply outline-none ring-2 ring-amber-400/80 ring-offset-2 ring-offset-gray-950;
+}

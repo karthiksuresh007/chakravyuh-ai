@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Actor } from "@/types";
 
 interface KeyPlayersTabProps {
@@ -64,9 +65,11 @@ function ActorCard({ actor, role }: { actor: Actor; role: string }) {
       <div className="flex items-start gap-3 mb-3">
         <div className="shrink-0 w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-xl">
           {actor.logoUrl ? (
-            <img
+            <Image
               src={actor.logoUrl}
               alt={actor.name}
+              width={40}
+              height={40}
               className="w-10 h-10 rounded-full object-cover"
             />
           ) : actor.countryCode ? (

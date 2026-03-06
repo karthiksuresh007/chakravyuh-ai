@@ -67,7 +67,7 @@ export default function ConflictHero({ conflict, humanitarian }: ConflictHeroPro
         </h1>
         <button
           onClick={handleShare}
-          title="Share this conflict"
+          aria-label="Share this conflict"
           className="shrink-0 mt-1 p-2 rounded-lg border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 transition-colors"
         >
           <svg
