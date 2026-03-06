@@ -11,10 +11,11 @@ import type {
 import OverviewTab from "@/components/conflict/OverviewTab";
 import KeyPlayersTab from "@/components/conflict/KeyPlayersTab";
 import ImpactTab from "@/components/conflict/ImpactTab";
+import AIExplainerPanel from "@/components/conflict/AIExplainerPanel";
 import TimelineSlider from "@/components/timeline/TimelineSlider";
 import TimelineFilters, { type TimelineCategory } from "@/components/timeline/TimelineFilters";
 
-const TABS = ["overview", "timeline", "players", "impact"] as const;
+const TABS = ["overview", "timeline", "players", "impact", "ai"] as const;
 type TabId = (typeof TABS)[number];
 
 const TAB_LABELS: Record<TabId, string> = {
@@ -22,6 +23,7 @@ const TAB_LABELS: Record<TabId, string> = {
   timeline: "Timeline",
   players: "Key Players",
   impact: "Impact",
+  ai: "AI Explainer",
 };
 
 interface ConflictTabsProps {
@@ -150,6 +152,12 @@ export default function ConflictTabs({
           )}
           {activeTab === "impact" && (
             <ImpactTab impact={impact} />
+          )}
+          {activeTab === "ai" && (
+            <AIExplainerPanel
+              slug={conflict.slug}
+              conflictName={conflict.displayName}
+            />
           )}
         </motion.div>
       </AnimatePresence>

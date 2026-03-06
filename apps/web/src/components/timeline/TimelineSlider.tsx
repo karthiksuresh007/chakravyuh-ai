@@ -315,7 +315,7 @@ export default function TimelineSlider({
       {/* ─── Nav controls ─────────────────────────────────── */}
       <div className="flex items-center justify-between text-xs text-gray-500">
         <button
-          onClick={() => { setIsPlaying(false); activeIndex > 0 && onSelect(activeIndex - 1); }}
+          onClick={() => { setIsPlaying(false); if (activeIndex > 0) onSelect(activeIndex - 1); }}
           disabled={activeIndex === 0}
           className="flex items-center gap-1 px-2 py-1 rounded hover:text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
@@ -347,7 +347,7 @@ export default function TimelineSlider({
         </div>
 
         <button
-          onClick={() => { setIsPlaying(false); activeIndex < events.length - 1 && onSelect(activeIndex + 1); }}
+          onClick={() => { setIsPlaying(false); if (activeIndex < events.length - 1) onSelect(activeIndex + 1); }}
           disabled={activeIndex === events.length - 1}
           className="flex items-center gap-1 px-2 py-1 rounded hover:text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
