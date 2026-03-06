@@ -12,6 +12,12 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      keyframes: {
+        "timeline-pulse": {
+          "0%, 100%": { transform: "scale(1)", opacity: "0.4" },
+          "50%": { transform: "scale(2)", opacity: "0" },
+        },
+      },
     },
   },
   plugins: [require("@tailwindcss/typography")],

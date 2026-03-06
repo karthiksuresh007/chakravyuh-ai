@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type {
   Conflict,
@@ -11,6 +11,8 @@ import type {
 import OverviewTab from "@/components/conflict/OverviewTab";
 import KeyPlayersTab from "@/components/conflict/KeyPlayersTab";
 import ImpactTab from "@/components/conflict/ImpactTab";
+import TimelineSlider from "@/components/timeline/TimelineSlider";
+import TimelineFilters, { type TimelineCategory } from "@/components/timeline/TimelineFilters";
 
 const TABS = ["overview", "timeline", "players", "impact"] as const;
 type TabId = (typeof TABS)[number];
@@ -36,7 +38,39 @@ export default function ConflictTabs({
   impact,
 }: ConflictTabsProps) {
   const [activeTab, setActiveTab] = useState<TabId>("overview");
+  const [activeTimelineIndex, setActiveTimelineIndex] = useState(0);
+  const [timelineCategory, setTimelineCategory] = useState<TimelineCategory>("all");
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  // Sort timeline events chronologically
+  const sortedTimeline = useMemo(
+    () =>
+      [...timeline].sort(
+        (a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime()
+      ),
+    [timeline]
+  );
+
+  // Unique categories present in data
+  const availableCategories = useMemo(
+    () => Array.from(new Set(sortedTimeline.map((e) => e.category.toLowerCase()))),
+    [sortedTimeline]
+  );
+
+  // Filter by active category
+  const filteredTimeline = useMemo(
+    () =>
+      timelineCategory === "all"
+        ? sortedTimeline
+        : sortedTimeline.filter((e) => e.category.toLowerCase() === timelineCategory),
+    [sortedTimeline, timelineCategory]
+  );
+
+  // Reset index when filter changes
+  const handleCategoryChange = (cat: TimelineCategory) => {
+    setTimelineCategory(cat);
+    setActiveTimelineIndex(0);
+  };
 
   // Sync from URL hash on mount
   useEffect(() => {
@@ -97,7 +131,19 @@ export default function ConflictTabs({
             <OverviewTab conflict={conflict} />
           )}
           {activeTab === "timeline" && (
-            <TimelinePanel timeline={timeline} />
+            <div className="space-y-4">
+              <TimelineFilters
+                availableCategories={availableCategories}
+                activeCategory={timelineCategory}
+                onSelect={handleCategoryChange}
+                eventCount={filteredTimeline.length}
+              />
+              <TimelineSlider
+                events={filteredTimeline}
+                activeIndex={activeTimelineIndex}
+                onSelect={setActiveTimelineIndex}
+              />
+            </div>
           )}
           {activeTab === "players" && (
             <KeyPlayersTab actors={actors} />
@@ -107,36 +153,6 @@ export default function ConflictTabs({
           )}
         </motion.div>
       </AnimatePresence>
-    </div>
-  );
-}
-
-/* ─── Timeline Panel ────────────────────────────────────────── */
-
-function TimelinePanel({ timeline }: { timeline: TimelineEvent[] }) {
-  if (timeline.length === 0) {
-    return <p className="text-gray-500 italic">No timeline events available.</p>;
-  }
-
-  return (
-    <div className="border-l-2 border-gray-700 pl-6 space-y-6">
-      {timeline.map((event) => (
-        <div key={event.id} className="relative">
-          <div className="absolute -left-[31px] top-1 w-3 h-3 rounded-full bg-gray-600 border-2 border-gray-950" />
-          <p className="text-xs text-gray-500 mb-1">
-            {new Date(event.eventDate).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })}
-            <span className="ml-2 text-gray-600">· {event.category}</span>
-          </p>
-          <h3 className="text-sm font-medium text-gray-200">{event.title}</h3>
-          {event.description && (
-            <p className="text-sm text-gray-500 mt-1">{event.description}</p>
-          )}
-        </div>
-      ))}
     </div>
   );
 }
