@@ -1,0 +1,21 @@
+STAGED:
+M  apps/web/src/app/dashboard/page.tsx
+M  apps/web/src/app/globals.css
+M  apps/web/src/app/layout.tsx
+M  apps/web/src/app/page.tsx
+M  apps/web/src/components/conflict/AIExplainerPanel.tsx
+M  apps/web/src/components/conflict/ConflictHero.tsx
+M  apps/web/src/components/impact/ChartCard.tsx
+M  apps/web/src/components/impact/ImpactMetricCard.tsx
+M  apps/web/src/components/impact/ImpactSkeleton.tsx
+M  apps/web/src/components/map/ConflictMap.tsx
+M  apps/web/src/components/map/MapFilters.tsx
+M  apps/web/src/components/map/MapTooltip.tsx
+M  apps/web/src/components/timeline/TimelineEventCard.tsx
+A  apps/web/src/design/animations.ts
+A  apps/web/src/design/colors.ts
+A  apps/web/src/design/index.ts
+A  apps/web/src/design/spacing.ts
+A  apps/web/src/design/typography.ts
+M  apps/web/tailwind.config.ts
+?? tmp_status.md

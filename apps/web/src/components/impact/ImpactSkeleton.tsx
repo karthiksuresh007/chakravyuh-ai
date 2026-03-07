@@ -6,7 +6,7 @@
  */
 export default function ImpactSkeleton() {
   return (
-    <div className="animate-pulse grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div className="animate-pulse grid grid-cols-1 lg:grid-cols-2 gap-8 glass-panel shadow-2xl font-mono">
       {/* ── Left column: Human Impact skeleton ────────────── */}
       <section>
         {/* Section header */}

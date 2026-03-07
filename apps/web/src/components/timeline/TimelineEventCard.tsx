@@ -35,17 +35,17 @@ export default function TimelineEventCard({
   const isMajor = event.significance.toLowerCase() === "major";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -12 }}
-      transition={{ duration: 0.2 }}
-      className={`rounded-xl border border-gray-800 bg-gray-900 ${
-        compact ? "p-3" : "p-3 sm:p-5"
-      }`}
-    >
-      {/* Header row */}
-      <div className="flex items-center gap-2 mb-2 flex-wrap">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -12 }}
+        transition={{ duration: 0.2 }}
+        className={`glass-panel shadow-2xl font-mono rounded-xl border border-gray-800 bg-gray-900 ${
+            compact ? "p-3" : "p-3 sm:p-5"
+        }`}
+      >
+        {/* Header row */}
+        <div className="flex flex-col gap-2">
         {/* Category dot + label */}
         <span
           className="inline-block w-2.5 h-2.5 rounded-full shrink-0"

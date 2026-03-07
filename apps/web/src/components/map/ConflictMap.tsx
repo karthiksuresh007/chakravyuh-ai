@@ -9,15 +9,66 @@ import type { MapFiltersState } from "@/types";
 import MapTooltip, { type TooltipState } from "./MapTooltip";
 import MapFilters from "./MapFilters";
 
+/* ── Dark monochrome base map style (no API key required) ── */
+const DARK_MAP_STYLE: maplibregl.StyleSpecification = {
+  version: 8,
+  name: "Chakravyuh Dark",
+  sources: {
+    demotiles: {
+      type: "vector",
+      url: "https://demotiles.maplibre.org/tiles/tiles.json",
+    },
+  },
+  glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+  layers: [
+    {
+      id: "background",
+      type: "background",
+      paint: { "background-color": "#0A0A0A" },
+    },
+    {
+      id: "countries-fill",
+      type: "fill",
+      source: "demotiles",
+      "source-layer": "countries",
+      paint: { "fill-color": "#121212" },
+    },
+    {
+      id: "countries-boundary",
+      type: "line",
+      source: "demotiles",
+      "source-layer": "countries",
+      paint: {
+        "line-color": "#1A1A1A",
+        "line-width": 0.7,
+      },
+    },
+    {
+      id: "geolines",
+      type: "line",
+      source: "demotiles",
+      "source-layer": "geolines",
+      paint: {
+        "line-color": "#141414",
+        "line-width": 0.5,
+        "line-dasharray": [3, 3],
+      },
+    },
+  ],
+};
+
 const SOURCE_ID = "conflicts";
 const CLUSTER_LAYER_ID = "conflict-clusters";
 const CLUSTER_COUNT_LAYER_ID = "conflict-cluster-count";
+const UNCLUSTERED_GLOW_LAYER_ID = "conflict-markers-glow";
+const UNCLUSTERED_PULSE_LAYER_ID = "conflict-markers-pulse";
 const UNCLUSTERED_LAYER_ID = "conflict-markers";
 const UNCLUSTERED_STROKE_LAYER_ID = "conflict-markers-stroke";
 
 export default function ConflictMap() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const pulseFrameRef = useRef<number>(0);
   const router = useRouter();
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +101,7 @@ export default function ConflictMap() {
 
     const map = new maplibregl.Map({
       container: mapContainer.current,
-      style: "https://demotiles.maplibre.org/style.json",
+      style: DARK_MAP_STYLE,
       center: [20, 20],
       zoom: 2,
     });
@@ -81,21 +132,22 @@ export default function ConflictMap() {
             "circle-color": [
               "step",
               ["get", "point_count"],
-              "#6366F1", // 1-4 conflicts → indigo
-              5, "#8B5CF6", // 5-9 → violet
-              10, "#EF4444", // 10+ → red
+              "#4F46E5", // 1-4 conflicts → deeper indigo
+              5, "#7C3AED", // 5-9 → AI violet (design token)
+              10, "#DC2626", // 10+ → deep red
             ],
             "circle-radius": [
               "step",
               ["get", "point_count"],
-              18,      // 1-4 → 18px
-              5, 24,   // 5-9 → 24px
-              10, 30,  // 10+ → 30px
+              16,      // 1-4 → 16px
+              5, 22,   // 5-9 → 22px
+              10, 28,  // 10+ → 28px
             ],
-            "circle-opacity": 0.8,
-            "circle-stroke-width": 2,
+            "circle-opacity": 0.85,
+            "circle-stroke-width": 1.5,
             "circle-stroke-color": "#ffffff",
-            "circle-stroke-opacity": 0.4,
+            "circle-stroke-opacity": 0.15,
+            "circle-blur": 0.15,
           },
         });
 
@@ -114,6 +166,93 @@ export default function ConflictMap() {
             "text-color": "#ffffff",
           },
         });
+
+        // ── Glow layer beneath markers (blurred, larger, low opacity) ──
+        map.addLayer({
+          id: UNCLUSTERED_GLOW_LAYER_ID,
+          type: "circle",
+          source: SOURCE_ID,
+          filter: ["!", ["has", "point_count"]],
+          paint: {
+            "circle-color": [
+              "match",
+              ["get", "intensity"],
+              "high", "#EF4444",
+              "medium", "#F97316",
+              "low", "#EAB308",
+              "tension", "#EAB308",
+              "#6B7280",
+            ],
+            "circle-radius": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              1, 8,
+              3, 14,
+              6, 22,
+              10, 32,
+            ],
+            "circle-blur": 0.45,
+            "circle-opacity": 0.35,
+          },
+        });
+
+        // ── Pulse layer for active conflicts (animated via rAF) ──
+        map.addLayer({
+          id: UNCLUSTERED_PULSE_LAYER_ID,
+          type: "circle",
+          source: SOURCE_ID,
+          filter: [
+            "all",
+            ["!", ["has", "point_count"]],
+            ["==", ["get", "status"], "active"],
+          ],
+          paint: {
+            "circle-color": [
+              "match",
+              ["get", "intensity"],
+              "high", "#EF4444",
+              "medium", "#F97316",
+              "low", "#EAB308",
+              "tension", "#EAB308",
+              "#6B7280",
+            ],
+            "circle-radius": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              1, 10,
+              3, 18,
+              6, 28,
+              10, 40,
+            ],
+            "circle-blur": 0.6,
+            "circle-opacity": 0.25,
+          },
+        });
+
+        // Start pulse animation loop
+        const animatePulse = () => {
+          const t = (performance.now() % 2000) / 2000; // 2-second cycle
+          const pulse = Math.sin(t * Math.PI * 2) * 0.5 + 0.5; // 0 → 1 → 0
+          const opacityVal = 0.1 + pulse * 0.25; // 0.1 → 0.35
+          const radiusScale = 1 + pulse * 0.3; // 1x → 1.3x
+
+          if (map.getLayer(UNCLUSTERED_PULSE_LAYER_ID)) {
+            map.setPaintProperty(UNCLUSTERED_PULSE_LAYER_ID, "circle-opacity", opacityVal);
+            map.setPaintProperty(UNCLUSTERED_PULSE_LAYER_ID, "circle-radius", [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              1, 10 * radiusScale,
+              3, 18 * radiusScale,
+              6, 28 * radiusScale,
+              10, 40 * radiusScale,
+            ]);
+          }
+          pulseFrameRef.current = requestAnimationFrame(animatePulse);
+        };
+        pulseFrameRef.current = requestAnimationFrame(animatePulse);
 
         // ── Unclustered marker fill — color by intensity ──
         map.addLayer({
@@ -135,12 +274,12 @@ export default function ConflictMap() {
               "interpolate",
               ["linear"],
               ["zoom"],
-              1, 5,
-              3, 8,
-              6, 14,
-              10, 20,
+              1, 4,
+              3, 7,
+              6, 12,
+              10, 18,
             ],
-            "circle-opacity": 0.85,
+            "circle-opacity": 0.9,
           },
         });
 
@@ -155,12 +294,12 @@ export default function ConflictMap() {
               "interpolate",
               ["linear"],
               ["zoom"],
-              1, 5,
-              3, 8,
-              6, 14,
-              10, 20,
+              1, 4,
+              3, 7,
+              6, 12,
+              10, 18,
             ],
-            "circle-stroke-width": 2,
+            "circle-stroke-width": 1.5,
             "circle-stroke-color": [
               "match",
               ["get", "intensity"],
@@ -170,6 +309,7 @@ export default function ConflictMap() {
               "tension", "#FDE047",
               "#9CA3AF",
             ],
+            "circle-stroke-opacity": 0.5,
             "circle-color": "transparent",
           },
         });
@@ -194,12 +334,24 @@ export default function ConflictMap() {
           });
         });
 
-        // ── Click unclustered marker → navigate to detail page ──
+        // ── Click unclustered marker → cinematic flyTo then navigate ──
         map.on("click", UNCLUSTERED_LAYER_ID, (e) => {
           e.originalEvent.stopPropagation();
           const feature = e.features?.[0];
           const slug = feature?.properties?.slug;
-          if (slug) router.push(`/conflict/${slug}`);
+          if (!slug) return;
+          const geometry = feature?.geometry;
+          if (geometry?.type === "Point") {
+            map.flyTo({
+              center: geometry.coordinates as [number, number],
+              zoom: 5,
+              duration: 1200,
+              essential: true,
+            });
+            setTimeout(() => router.push(`/conflict/${slug}`), 900);
+          } else {
+            router.push(`/conflict/${slug}`);
+          }
         });
 
         // ── Hover unclustered markers → show tooltip ──
@@ -248,6 +400,7 @@ export default function ConflictMap() {
     ro.observe(mapContainer.current);
 
     return () => {
+      cancelAnimationFrame(pulseFrameRef.current);
       ro.disconnect();
       map.remove();
       mapRef.current = null;
@@ -257,12 +410,13 @@ export default function ConflictMap() {
 
   return (
     <div className="absolute inset-0" role="application" aria-label="Interactive conflict map">
-      <div ref={mapContainer} className="w-full h-full" aria-hidden="true" />
+      <div ref={mapContainer} className="w-full h-full" />
       <MapFilters onChange={applyFilters} />
       {!loaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-950">
-          <div className="text-gray-400 text-sm animate-pulse">
-            Loading map…
+        <div className="absolute inset-0 flex items-center justify-center bg-background">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-2 border-border border-t-indigo-500 rounded-full animate-spin" />
+            <span className="text-sm text-gray-500 font-data tracking-wide">LOADING MAP</span>
           </div>
         </div>
       )}

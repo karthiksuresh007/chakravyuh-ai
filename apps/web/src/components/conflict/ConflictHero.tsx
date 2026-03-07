@@ -44,7 +44,7 @@ export default function ConflictHero({ conflict, humanitarian }: ConflictHeroPro
     riskScore >= 8 ? "text-red-400" : riskScore >= 5 ? "text-orange-400" : "text-yellow-400";
 
   return (
-    <header className="px-4 sm:px-6 lg:px-8 py-8 max-w-5xl mx-auto">
+    <header className="px-4 sm:px-6 lg:px-8 py-8 max-w-5xl mx-auto glass-panel shadow-2xl">
       {/* Badges */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <span
@@ -63,7 +63,7 @@ export default function ConflictHero({ conflict, humanitarian }: ConflictHeroPro
       {/* Title + Share */}
       <div className="flex items-start justify-between gap-4 mb-5">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
-          {conflict.displayName}
+          <span className="font-mono">{conflict.displayName}</span>
         </h1>
         <button
           onClick={handleShare}
@@ -92,29 +92,29 @@ export default function ConflictHero({ conflict, humanitarian }: ConflictHeroPro
         <div>
           <p className="text-xs text-gray-500 mb-0.5">Started</p>
           <p className="text-sm font-medium text-gray-200">
-            {new Date(conflict.startDate).toLocaleDateString("en-US", {
+            <span className="font-mono">{new Date(conflict.startDate).toLocaleDateString("en-US", {
               year: "numeric",
               month: "short",
               day: "numeric",
-            })}
+            })}</span>
           </p>
         </div>
         {conflict.endDate ? (
           <div>
             <p className="text-xs text-gray-500 mb-0.5">Ended</p>
             <p className="text-sm font-medium text-gray-200">
-              {new Date(conflict.endDate).toLocaleDateString("en-US", {
+              <span className="font-mono">{new Date(conflict.endDate).toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "short",
                 day: "numeric",
-              })}
+              })}</span>
             </p>
           </div>
         ) : (
           <div>
             <p className="text-xs text-gray-500 mb-0.5">Duration</p>
             <p className="text-sm font-medium text-gray-200">
-              {getDuration(conflict.startDate)}
+              <span className="font-mono">{getDuration(conflict.startDate)}</span>
             </p>
           </div>
         )}
@@ -123,8 +123,8 @@ export default function ConflictHero({ conflict, humanitarian }: ConflictHeroPro
         <div>
           <p className="text-xs text-gray-500 mb-0.5">Risk Score</p>
           <p className={`text-sm font-semibold ${riskColor}`}>
-            {riskScore.toFixed(1)}
-            <span className="text-gray-500 font-normal"> / 10</span>
+            <span className="font-mono">{riskScore.toFixed(1)}</span>
+            <span className="text-gray-500 font-normal font-mono"> / 10</span>
           </p>
         </div>
 
@@ -133,7 +133,7 @@ export default function ConflictHero({ conflict, humanitarian }: ConflictHeroPro
           <div>
             <p className="text-xs text-gray-500 mb-0.5">Est. Deaths</p>
             <p className="text-sm font-semibold text-gray-200">
-              {formatNumber(humanitarian.totalDeaths)}
+              <span className="font-mono">{formatNumber(humanitarian.totalDeaths)}</span>
             </p>
           </div>
         ) : (
@@ -152,25 +152,25 @@ export default function ConflictHero({ conflict, humanitarian }: ConflictHeroPro
           <div>
             <p className="text-xs text-gray-500 mb-0.5">Civilian Deaths</p>
             <p className="text-sm font-semibold text-gray-200">
-              {formatNumber(humanitarian.civilianDeaths)}
+              <span className="font-mono">{formatNumber(humanitarian.civilianDeaths)}</span>
             </p>
           </div>
           <div>
             <p className="text-xs text-gray-500 mb-0.5">Combatant Deaths</p>
             <p className="text-sm font-semibold text-gray-200">
-              {formatNumber(humanitarian.combatantDeaths)}
+              <span className="font-mono">{formatNumber(humanitarian.combatantDeaths)}</span>
             </p>
           </div>
           <div>
             <p className="text-xs text-gray-500 mb-0.5">Internally Displaced</p>
             <p className="text-sm font-semibold text-gray-200">
-              {formatNumber(humanitarian.idpCount)}
+              <span className="font-mono">{formatNumber(humanitarian.idpCount)}</span>
             </p>
           </div>
           <div>
             <p className="text-xs text-gray-500 mb-0.5">Refugees</p>
             <p className="text-sm font-semibold text-gray-200">
-              {formatNumber(humanitarian.refugeeCount)}
+              <span className="font-mono">{formatNumber(humanitarian.refugeeCount)}</span>
             </p>
           </div>
         </div>

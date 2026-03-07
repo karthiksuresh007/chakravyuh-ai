@@ -35,33 +35,33 @@ export default function MapTooltip({ x, y, properties }: TooltipState) {
 
   return (
     <div
-      className="pointer-events-none absolute z-50 w-56 rounded-lg border border-gray-700 bg-gray-900/95 px-3 py-2.5 shadow-xl backdrop-blur-sm"
+      className="pointer-events-none absolute z-50 w-64 glass-panel bg-black/80 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl px-4 py-3"
       style={{ left: x + 12, top: y - 12 }}
     >
-      <p className="text-sm font-semibold text-gray-100 leading-tight">
+      <p className="text-base font-semibold text-gray-100 leading-tight mb-1">
         {display_name}
       </p>
 
-      <div className="mt-1.5 flex items-center gap-1.5">
+      <div className="flex items-center gap-2 mb-2">
         <span
-          className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white ${STATUS_COLORS[status] ?? "bg-gray-500"}`}
+          className={`inline-block rounded-lg px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-white ${STATUS_COLORS[status] ?? "bg-gray-500"}`}
         >
           {status}
         </span>
         <span
-          className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white ${INTENSITY_COLORS[intensity] ?? "bg-gray-400"}`}
+          className={`inline-block rounded-lg px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-white ${INTENSITY_COLORS[intensity] ?? "bg-gray-400"}`}
         >
           {intensity}
         </span>
       </div>
 
-      <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-gray-400">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-gray-400">
         <span>Casualties</span>
-        <span className="text-gray-200 text-right">
+        <span className="font-data text-gray-200 text-right font-mono">
           {formatCasualties(casualty_estimate)}
         </span>
         <span>Risk Score</span>
-        <span className="text-gray-200 text-right">
+        <span className="font-data text-gray-200 text-right font-mono">
           {risk_score != null ? `${risk_score}/10` : "N/A"}
         </span>
       </div>

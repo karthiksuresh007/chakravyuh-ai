@@ -58,13 +58,13 @@ export default function MapFilters({ onChange }: MapFiltersProps) {
         aria-expanded={open}
         aria-controls="map-filter-panel"
         aria-label={open ? "Hide map filters" : "Show map filters"}
-        className="rounded-lg bg-gray-900/90 border border-gray-700 px-3 py-2 text-xs font-medium text-gray-200 shadow-lg backdrop-blur-sm hover:bg-gray-800/90 transition-colors max-sm:ml-4 max-sm:mb-2"
+        className="glass-panel rounded-lg px-3 py-2 text-xs font-medium text-gray-200 shadow-lg hover:bg-white/10 transition-colors max-sm:ml-4 max-sm:mb-2"
       >
         {open ? "✕ Hide Filters" : "☰ Filters"}
       </button>
 
       {open && (
-        <div id="map-filter-panel" role="region" aria-label="Map filters" className="mt-2 w-56 rounded-lg border border-gray-700 bg-gray-900/95 p-3 shadow-xl backdrop-blur-sm max-sm:w-full max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:mt-0 max-sm:max-h-[40vh] max-sm:overflow-y-auto">
+        <div id="map-filter-panel" role="region" aria-label="Map filters" className="glass-panel mt-2 w-56 p-3 shadow-xl max-sm:w-full max-sm:rounded-b-none max-sm:rounded-t-xl max-sm:mt-0 max-sm:max-h-[40vh] max-sm:overflow-y-auto">
           {/* Intensity */}
           <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-2">
             Intensity

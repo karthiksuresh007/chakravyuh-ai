@@ -1,10 +1,14 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #030712;
+  --background: #050505;
   --foreground: #f3f4f6;
+  --surface: #0e0e0e;
+  --border: #1a1a1a;
 }
 
 body {
@@ -14,9 +18,7 @@ body {
 
 /* ── Skip-to-content link ───────────────────────────────── */
 .skip-link {
-  @apply absolute -top-10 left-4 z-[9999] px-4 py-2 text-sm font-medium
-         bg-white text-gray-950 rounded-b-lg shadow-lg
-         focus:top-0 transition-[top] duration-200;
+  @apply absolute -top-10 left-4 z-[9999] px-4 py-2 text-sm font-medium bg-white text-gray-950 rounded-b-lg shadow-lg focus:top-0 transition-[top] duration-200;
 }
 
 /* ── Scrollbar-hide utility ─────────────────────────────── */
@@ -24,6 +26,7 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
@@ -31,4 +34,89 @@ body {
 /* ── Focus-visible ring for all interactive elements ───── */
 *:focus-visible {
   @apply outline-none ring-2 ring-amber-400/80 ring-offset-2 ring-offset-gray-950;
+}
+
+/* ── Pulse animation for active conflict markers ───────── */
+@keyframes pulse-war {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.6);
+    opacity: 0.4;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.pulse-conflict {
+  animation: pulse-war 2s infinite;
+}
+
+/* ── Glass panel utility ───────────────────────────────── */
+.glass-panel {
+  @apply bg-black/60 backdrop-blur-md border border-white/10 rounded-xl;
+}
+
+/* ── Mono numbers ──────────────────────────────────────── */
+.font-data {
+  font-family: "JetBrains Mono", var(--font-geist-mono), monospace;
+}
+
+/* ── Smooth scroll for CTA navigation ─────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ── Hero gradient overlay on fullscreen map ──────────── */
+.hero-gradient-overlay {
+  background: linear-gradient(to bottom,
+      rgba(5, 5, 5, 0.55) 0%,
+      rgba(5, 5, 5, 0.35) 40%,
+      rgba(5, 5, 5, 0.55) 70%,
+      rgba(5, 5, 5, 0.85) 100%);
+}
+
+/* ── Navbar glass ─────────────────────────────────────── */
+.navbar-glass {
+  @apply bg-black/40 backdrop-blur-lg border-b border-white/5;
+}
+
+/* ── Legend label font ────────────────────────────────── */
+.font-legend {
+  font-family: "JetBrains Mono", var(--font-geist-mono), monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+}
+
+/* ── Feature card hover lift ──────────────────────────── */
+.feature-card {
+  transition: transform 0.3s cubic-bezier(0.33, 1, 0.68, 1),
+    box-shadow 0.3s cubic-bezier(0.33, 1, 0.68, 1),
+    border-color 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Hero map: hide ALL interactive overlays ──────── */
+/* Hides MapFilters, MapTooltip, loading, error, and MapLibre controls */
+.hero-map-container [role="application"]> :not(:first-child) {
+  display: none !important;
+}
+
+.hero-map-container .maplibregl-control-container {
+  display: none !important;
+}
+
+/* ── Map section: push filters below the fixed navbar ─ */
+#map-section [role="application"]>.absolute.top-4.left-4 {
+  top: 4.5rem;
 }

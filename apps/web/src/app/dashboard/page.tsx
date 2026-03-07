@@ -12,10 +12,10 @@ const ConflictMap = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-full bg-gray-900 flex items-center justify-center">
+      <div className="w-full h-full bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-2 border-gray-700 border-t-amber-500 rounded-full animate-spin" />
-          <span className="text-sm text-gray-500">Loading map…</span>
+          <div className="w-10 h-10 border-2 border-border border-t-indigo-500 rounded-full animate-spin" />
+          <span className="text-sm text-gray-500 font-data tracking-wide">LOADING MAP</span>
         </div>
       </div>
     ),

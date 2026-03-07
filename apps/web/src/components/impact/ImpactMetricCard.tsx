@@ -34,9 +34,7 @@ export default function ImpactMetricCard({
 
   return (
     <div
-      className={`rounded-lg border border-gray-800 bg-gray-900 ${
-        isLarge ? "p-5" : "p-4"
-      }`}
+      className={`glass-panel shadow-2xl ${isLarge ? "p-5" : "p-4"}`}
     >
       <div className="flex items-center gap-2 mb-1">
         {icon && <span className="text-gray-500">{icon}</span>}
@@ -46,7 +44,7 @@ export default function ImpactMetricCard({
       </div>
 
       <p
-        className={`font-semibold text-gray-100 ${
+        className={`font-semibold text-gray-100 font-mono ${
           isLarge ? "text-2xl sm:text-3xl" : "text-lg"
         }`}
       >
