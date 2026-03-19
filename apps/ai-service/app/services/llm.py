@@ -3,8 +3,18 @@ from typing import AsyncIterator
 from app.config import settings
 
 
+def is_llm_configured() -> bool:
+    return bool(settings.GEMINI_API_KEY.strip())
+
+
+def ensure_llm_configured() -> None:
+    if not is_llm_configured():
+        raise RuntimeError("GEMINI_API_KEY is not configured")
+
+
 def _configure_client() -> None:
     """Configure the Gemini SDK with the API key."""
+    ensure_llm_configured()
     genai.configure(api_key=settings.GEMINI_API_KEY)
 
 

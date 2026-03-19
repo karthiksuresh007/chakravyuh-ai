@@ -23,3 +23,4 @@ class HealthResponse(BaseModel):
     status: str
     service: str
     version: str
+    ai_configured: bool

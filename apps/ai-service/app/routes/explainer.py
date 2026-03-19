@@ -6,7 +6,12 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from app.models.schemas import ExplainRequest, FollowUpRequest
 from app.services.rag_service import get_conflict_context
 from app.services.prompts import build_system_prompt, build_user_prompt
-from app.services.llm import get_model, generate_completion, stream_completion
+from app.services.llm import (
+    ensure_llm_configured,
+    generate_completion,
+    get_model,
+    stream_completion,
+)
 from app.services.memory import create_session, get_session
 
 router = APIRouter(prefix="/ai", tags=["AI Explainer"])
@@ -14,6 +19,13 @@ router = APIRouter(prefix="/ai", tags=["AI Explainer"])
 
 async def _prepare_explanation(req: ExplainRequest):
     """Shared logic: fetch RAG context, build prompts, return model + contents + metadata."""
+    try:
+        ensure_llm_configured()
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="AI service is not configured yet. Add GEMINI_API_KEY to enable explanations.",
+        ) from exc
 
     conflict, context = await get_conflict_context(req.conflict_slug)
     if not conflict:

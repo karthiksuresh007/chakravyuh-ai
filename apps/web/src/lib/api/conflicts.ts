@@ -77,10 +77,15 @@ export async function listConflicts(): Promise<ConflictListResponse> {
     throw new Error(`Failed to fetch conflicts list: ${res.status}`);
   }
 
-  const json: ApiResponse<ConflictListResponse> = await res.json();
+  const json: ApiResponse<Conflict[]> = await res.json();
   if (!json.success || !json.data) {
     throw new Error("Invalid API response for conflicts list");
   }
 
-  return json.data;
+  return {
+    items: json.data,
+    total: Number(json.meta?.total ?? json.data.length),
+    limit: Number(json.meta?.limit ?? json.data.length),
+    offset: Number(json.meta?.offset ?? 0),
+  };
 }

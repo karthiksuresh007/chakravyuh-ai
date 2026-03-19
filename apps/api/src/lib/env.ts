@@ -7,6 +7,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().min(1),
   PORT: z.coerce.number().default(3001),
+  CORS_ORIGINS: z.string().default("http://localhost:3000"),
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development"),

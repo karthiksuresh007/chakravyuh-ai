@@ -1,10 +1,16 @@
 // Shared TypeScript types for the frontend
 
-export type ConflictStatus = "active" | "tension" | "historical" | "frozen" | "peacekeeping";
+export type ConflictStatus =
+  | "active"
+  | "resolved"
+  | "historical"
+  | "frozen"
+  | "tension"
+  | "peacekeeping";
 export type ConflictIntensity = "high" | "medium" | "low" | "tension" | "historical";
 
 export interface ConflictMarkerProperties {
-  conflict_id: number;
+  conflict_id: string;
   slug: string;
   display_name: string;
   status: ConflictStatus;

@@ -3,11 +3,16 @@ import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
 import { sql } from "drizzle-orm";
 import { db } from "./db/index.js";
+import { env } from "./lib/env.js";
 import { getCacheStatus } from "./lib/cache.js";
 import conflictRoutes from "./routes/conflicts.js";
 import mapRoutes from "./routes/map.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
+  const allowedOrigins = env.CORS_ORIGINS.split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
   const app = Fastify({
     logger: {
       level: process.env.NODE_ENV === "production" ? "info" : "debug",
@@ -21,7 +26,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   // Register CORS
   await app.register(cors, {
     origin: process.env.NODE_ENV === "production"
-      ? ["https://chakravyuh.ai"]
+      ? allowedOrigins
       : true,
     credentials: true,
   });
